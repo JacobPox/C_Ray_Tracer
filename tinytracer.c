@@ -21,7 +21,7 @@ int arrSub(const float arr1[], const float arr2[], float subArr[], int length) {
     return 0;
 }
 
-int dotProduct(const float arr1[], const float arr2[], int length) {
+float dotProduct(const float arr1[], const float arr2[], int length) {
     /*
     Returns the dot product of two equal sized arrays 
     (treated as vectors)
@@ -33,7 +33,7 @@ int dotProduct(const float arr1[], const float arr2[], int length) {
     for (int i = 0; i < length; i++) {
         result += arr1[i] * arr2[i];
     }
-    printf("Result: %f\n", result);
+
     return result;
 }
 
@@ -75,7 +75,6 @@ bool ray_intersect(const float origin[], const float dir[], float t0, Sphere s) 
     arrSub(s.center, origin, L, 3); //L is now the vector from origin to the sphere's center
 
     float tca = dotProduct(L, dir, 3); //Projection of L onto dir
-    printf("tca: %f\n", tca);
     float d2 = dotProduct(L, L, 3) - tca*tca;
 
     if (d2 > s.radius * s.radius) return false; //There is no intersection, so return false.
