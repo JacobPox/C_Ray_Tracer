@@ -33,6 +33,7 @@ int dotProduct(const float arr1[], const float arr2[], int length) {
     for (int i = 0; i < length; i++) {
         result += arr1[i] * arr2[i];
     }
+    printf("Result: %f\n", result);
     return result;
 }
 
@@ -73,7 +74,8 @@ bool ray_intersect(const float origin[], const float dir[], float t0, Sphere s) 
     float L[3] = {0,0,0}; //The zero vector
     arrSub(s.center, origin, L, 3); //L is now the vector from origin to the sphere's center
 
-    float tca = dotProduct(L, dir, 3);
+    float tca = dotProduct(L, dir, 3); //Projection of L onto dir
+    printf("tca: %f\n", tca);
     float d2 = dotProduct(L, L, 3) - tca*tca;
 
     if (d2 > s.radius * s.radius) return false; //There is no intersection, so return false.
@@ -93,9 +95,9 @@ bool ray_intersect(const float origin[], const float dir[], float t0, Sphere s) 
 int cast_ray(const float origin[], const float dir[], const Sphere s, unsigned char colorArr[]) {
     float sphere_dist = INT_MAX;
     if (!ray_intersect(origin, dir, sphere_dist, s)) {
-        colorArr[0], colorArr[1], colorArr[2] = .2, .7, .8; //background color
+        colorArr[0], colorArr[1], colorArr[2] = 250, 2, 2; //background color
     } else {
-        colorArr[0], colorArr[1], colorArr[2] = .4,.4,.3; //light up pixel
+        colorArr[0], colorArr[1], colorArr[2] = 1, 1, 100; //light up pixel
     }
 
     return 0;
@@ -108,7 +110,7 @@ int render(const Sphere s) {
     const int width = 1024;
     const int height = 768;
 
-    FILE *fp = fopen("second.ppm", "wb"); // Write in binary mode
+    FILE *fp = fopen("spheres.ppm", "wb"); // Write in binary mode
     (void) fprintf(fp, "P6\n%d %d\n255\n", width, height);
 
     float fov = 3.1415926535/2.; // Field of View
