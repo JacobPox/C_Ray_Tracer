@@ -5,8 +5,13 @@
 #include <limits.h>
 
 typedef struct {
+    float diffuse_color[3];
+}  Material;
+
+typedef struct {
     float center[3];
     float radius;
+    Material material;
 
 } Sphere;
 
@@ -17,6 +22,28 @@ int arrSub(const float arr1[], const float arr2[], float subArr[], int length) {
     */
     for (int i = 0; i < length; i++) {
         subArr[i] = arr1[i] - arr2[i];
+    }
+    return 0;
+}
+
+int arrAdd(const float arr1[], const float arr2[], float addArr[], int length) {
+    /*
+    Requires 3 equally sized arrays (denoted as length),
+    arr1 + arr2 will result in the third array subArr
+    */
+    for (int i = 0; i < length; i++) {
+        addArr[i] = arr1[i] + arr2[i];
+    }
+    return 0;
+}
+
+int arrScalarMult(const float arr1[], float scalar, float newArr[], int length) {
+    /*
+    Requires 3 equally sized arrays (denoted as length),
+    arr1 - arr2 will result in the third array subArr
+    */
+    for (int i = 0; i < length; i++) {
+        newArr[i] = arr1[i] * scalar;
     }
     return 0;
 }
@@ -90,24 +117,49 @@ bool ray_intersect(const float origin[], const float dir[], float t0, Sphere s) 
     return true;
 }
 
-int cast_ray(const float origin[], const float dir[], const Sphere s, unsigned char colorArr[]) {
+bool scene_intersect(const float origin[], const float dir[], const Sphere s[], int len, float hit[], float N[], Material material) {
     float sphere_dist = INT_MAX;
-    if (!ray_intersect(origin, dir, sphere_dist, s)) {
+
+    for (size_t i=0; i < len; i++) {
+        float dist_i;
+        if (ray_intersect(origin, dir, dist_i, s[i]) && dist_i < sphere_dist) {
+            sphere_dist = dist_i;
+
+            float dirDist[3];
+            arrScalarMult(dir, dist_i, dirDist, 3);
+            arrAdd(origin, dirDist, hit, 3);
+
+            float hitMinusCenter[3];
+            arrSub(hit, s[i].center, hitMinusCenter, 3);
+            normalize(hitMinusCenter, 3);
+
+            N = hitMinusCenter;
+            material = s[i].material;
+        }
+    }
+    return sphere_dist<1000;
+}
+
+int cast_ray(const float origin[], const float dir[], const Sphere s[], unsigned char colorArr[]) {
+    float point[3], N[3];
+    Material materialS;
+
+    if (!scene_intersect(origin, dir, s, 3, point, N, materialS)) {
         //background
         colorArr[0] = 250; //red
-        colorArr[1] = 50; //green
-        colorArr[2] = 50; //blue
+        colorArr[1] = 250; //green
+        colorArr[2] = 250; //blue
     } else {
         //light up pixel
-        colorArr[0] = 10;
-        colorArr[1] = 125;
-        colorArr[2] = 25; 
+        colorArr[0] = s[0].material.diffuse_color[0];
+        colorArr[1] = s[1].material.diffuse_color[1];
+        colorArr[2] = s[2].material.diffuse_color[2]; 
     }
 
     return 0;
 }
 
-int render(const Sphere s) {
+int render(const Sphere s[]) {
     /*
     Creates image in a new color each step.
     */
@@ -139,7 +191,19 @@ int render(const Sphere s) {
 }
 
 int main(void) {
-    Sphere s = {{-3,0,-16}, 2};
+    Material red = {255,0,0};
+    Material pink = {150,10,150};
+    Material gold = {255, 195, 0};
+
+    //Populate with spheres
+    Sphere s[3];
+    Sphere originalS = {{-3,0,-16},2,gold};
+    Sphere bigS = {{-1.0, -1.5, -12}, 3, red};
+    Sphere anotherS = {{7,5,-18},2,pink};
+
+    s[0] = originalS;
+    s[1] = bigS;
+    s[2] = anotherS;
 
     render(s);
     printf("Run success!\n");
