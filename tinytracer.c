@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <stdbool.h>
 #include <math.h>
+#include <limits.h>
 
 typedef struct {
     float center[3];
@@ -9,16 +10,24 @@ typedef struct {
 
 } Sphere;
 
-int arrSub(const float arr1[], const float arr2[], float addedArr[], int length) {
-    //Subtracts components of two arrays (treating them as vectors)
+int arrSub(const float arr1[], const float arr2[], float subArr[], int length) {
+    /*
+    Requires 3 equally sized arrays (denoted as length),
+    arr1 - arr2 will result in the third array subArr
+    */
     for (int i = 0; i < length; i++) {
-        addedArr[i] = arr1[i] - arr2[i];
+        subArr[i] = arr1[i] - arr2[i];
     }
     return 0;
 }
 
 int dotProduct(const float arr1[], const float arr2[], int length) {
-    //Returns the dot product
+    /*
+    Returns the dot product of two equal sized arrays 
+    (treated as vectors)
+
+    a (dot) b = a1b1 + a2b2 + ... anbn
+    */
     float result = 0;
 
     for (int i = 0; i < length; i++) {
@@ -27,37 +36,66 @@ int dotProduct(const float arr1[], const float arr2[], int length) {
     return result;
 }
 
-bool ray_intersect(const float origin[], const float dir[], float * t0, Sphere s) {
+int normalize(float arr[], int len) {
+    //Normalize a vector (array)
+
+    float sumSqr;
+    float norm;
+
+    for (int i = 0; i < len; i++) {
+        sumSqr += arr[i] * arr[i];
+    }
+
+    norm = sqrt(sumSqr);
+
+    for (int i = 0; i < len; i++) {
+        arr[i] = arr[i] / norm;
+    }
+
+    return 0;
+}
+
+bool ray_intersect(const float origin[], const float dir[], float t0, Sphere s) {
     /*
     Ray-Sphere Intersection
+    
+    Vectors:
+        origin (the zero vector)
+        dir (direction vector)
+        L (vector from origin to center of sphere)
+    Scalars:
+        tca
+        d2
+        thc
+        t0
+        t1    
     */
-    float L[3] = {0,0,0}; //line
-    arrSub(s.center, origin, L, 3); //L now is updated
+    float L[3] = {0,0,0}; //The zero vector
+    arrSub(s.center, origin, L, 3); //L is now the vector from origin to the sphere's center
 
     float tca = dotProduct(L, dir, 3);
     float d2 = dotProduct(L, L, 3) - tca*tca;
 
-    if (d2 > s.radius * s.radius) return false;
+    if (d2 > s.radius * s.radius) return false; //There is no intersection, so return false.
 
     float thc = sqrtf((s.radius*s.radius - d2));
-    * t0 = tca - thc;
+    t0 = tca - thc;
     float t1 = tca + thc;
-    if (* t0 < 0) {
-        * t0 = t1;
+    if (t0 < 0) {
+        t0 = t1;
     }
 
-    if (* t0 < 0) return false;
+    if (t0 < 0) return false;
 
     return true;
 }
 
 int cast_ray(const float origin[], const float dir[], const Sphere s, unsigned char colorArr[]) {
-    float sphere_dist = 200000;
-    float * t0 = &sphere_dist;
-    if (!ray_intersect(origin, dir, t0, s)) {
+    float sphere_dist = INT_MAX;
+    if (!ray_intersect(origin, dir, sphere_dist, s)) {
         colorArr[0], colorArr[1], colorArr[2] = .2, .7, .8; //background color
     } else {
-        colorArr[0], colorArr[1], colorArr[2] = .4,.4,.3;
+        colorArr[0], colorArr[1], colorArr[2] = .4,.4,.3; //light up pixel
     }
 
     return 0;
@@ -70,18 +108,19 @@ int render(const Sphere s) {
     const int width = 1024;
     const int height = 768;
 
-    FILE *fp = fopen("first.ppm", "wb"); // Write in binary mode
+    FILE *fp = fopen("second.ppm", "wb"); // Write in binary mode
     (void) fprintf(fp, "P6\n%d %d\n255\n", width, height);
 
-    float fov = 100; // Field of View
+    float fov = 3.1415926535/2.; // Field of View
 
-    for (int j = 0; j < height; ++j) {
-        for (int i = 0; i < width; ++i) {
+    for (size_t j = 0; j < height; j++) {
+        for (size_t i = 0; i < width; i++) {
 
             float x = (2*(i+.5)/(float)width - 1)*tan(fov/2.)*width/(float)height;
             float y = -(2*(j+.5)/(float)height - 1)*tan(fov/2.);
 
             float dir[] = {x,y,-1};
+            normalize(dir, 3);
 
             static unsigned char color[3];
             const float origin[] = {0,0,0};
