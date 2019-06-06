@@ -85,7 +85,6 @@ bool ray_intersect(const float origin[], const float dir[], float t0, Sphere s) 
     if (t0 < 0) {
         t0 = t1;
     }
-
     if (t0 < 0) return false;
 
     return true;
@@ -94,9 +93,15 @@ bool ray_intersect(const float origin[], const float dir[], float t0, Sphere s) 
 int cast_ray(const float origin[], const float dir[], const Sphere s, unsigned char colorArr[]) {
     float sphere_dist = INT_MAX;
     if (!ray_intersect(origin, dir, sphere_dist, s)) {
-        colorArr[0], colorArr[1], colorArr[2] = 250, 2, 2; //background color
+        //background
+        colorArr[0] = 250; //red
+        colorArr[1] = 50; //green
+        colorArr[2] = 50; //blue
     } else {
-        colorArr[0], colorArr[1], colorArr[2] = 1, 1, 100; //light up pixel
+        //light up pixel
+        colorArr[0] = 10;
+        colorArr[1] = 125;
+        colorArr[2] = 25; 
     }
 
     return 0;
@@ -134,7 +139,7 @@ int render(const Sphere s) {
 }
 
 int main(void) {
-    Sphere s = {{1,1,1}, 1};
+    Sphere s = {{-3,0,-16}, 2};
 
     render(s);
     printf("Run success!\n");
