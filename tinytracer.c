@@ -73,7 +73,7 @@ float dotProduct(const float arr1[], const float arr2[], int length) {
 int normalize(float arr[], int len) {
     //Normalize a vector (array)
 
-    float sumSqr;
+    float sumSqr = 0;
     float norm;
 
     for (int i = 0; i < len; i++) {
@@ -89,7 +89,7 @@ int normalize(float arr[], int len) {
     return 0;
 }
 
-bool ray_intersect(const float origin[], const float dir[], float t0, Sphere s) {
+bool ray_intersect(const float origin[], const float dir[], float * t0, Sphere s) {
     /*
     Ray-Sphere Intersection
     
@@ -113,12 +113,12 @@ bool ray_intersect(const float origin[], const float dir[], float t0, Sphere s) 
     if (d2 > s.radius * s.radius) return false; //There is no intersection, so return false.
 
     float thc = sqrtf((s.radius*s.radius - d2));
-    t0 = tca - thc;
+    * t0 = tca - thc;
     float t1 = tca + thc;
     if (t0 < 0) {
-        t0 = t1;
+        * t0 = t1;
     }
-    if (t0 < 0) return false;
+    if (* t0 < 0) return false;
 
     return true;
 }
@@ -128,7 +128,8 @@ bool scene_intersect(const float origin[], const float dir[], const Sphere s[], 
 
     for (size_t i=0; i < len; i++) {
         float dist_i;
-        if (ray_intersect(origin, dir, dist_i, s[i]) && dist_i < sphere_dist) {
+        float * t0 = &dist_i;
+        if (ray_intersect(origin, dir, t0, s[i]) && dist_i < sphere_dist) {
             sphere_dist = dist_i;
 
             float dirDist[3];
@@ -171,7 +172,7 @@ int cast_ray(const float origin[], const float dir[], const Sphere s[], const Li
         //light up pixel
         colorArr[0] = m.diffuse_color[0] * diffuse_light_intensity;
         colorArr[1] = m.diffuse_color[1] * diffuse_light_intensity;
-        colorArr[2] = m.diffuse_color[2] * diffuse_light_intensity; 
+        colorArr[2] = m.diffuse_color[2] * diffuse_light_intensity;
     }
 
     return 0;
@@ -184,11 +185,12 @@ int render(const Sphere s[], const Light l[], int l_length) {
     const int width = 1024;
     const int height = 768;
 
-    FILE *fp = fopen("third.ppm", "wb"); // Write in binary mode
+    FILE *fp = fopen("fourth.ppm", "wb"); // Write in binary mode
     (void) fprintf(fp, "P6\n%d %d\n255\n", width, height);
 
     float fov = 3.1415926535/2.; // Field of View
 
+    #pragma omp parallel for
     for (size_t j = 0; j < height; j++) {
         for (size_t i = 0; i < width; i++) {
 
@@ -226,7 +228,7 @@ int main(void) {
     //Add light source
     Light l[1];
     
-    Light test_light = {{-20,20,20}, 1.0};
+    Light test_light = {{-100,20,20}, 1.5};
 
     l[0] = test_light;
 
