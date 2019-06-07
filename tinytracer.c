@@ -169,10 +169,12 @@ int cast_ray(const float origin[], const float dir[], const Sphere s[], const Li
             normalize(light_dir, 3);
             diffuse_light_intensity += l[i].intensity * ((0.f >= dotProduct(light_dir, N, 3) ? (0.f) : (dotProduct(light_dir, N, 3))));
         }
-        //light up pixel
-        colorArr[0] = m.diffuse_color[0] * diffuse_light_intensity;
-        colorArr[1] = m.diffuse_color[1] * diffuse_light_intensity;
-        colorArr[2] = m.diffuse_color[2] * diffuse_light_intensity;
+        /*
+        light up pixels and prevent overflow
+        */
+        colorArr[0] = ((m.diffuse_color[0] * diffuse_light_intensity > 255) ? (m.diffuse_color[0] * diffuse_light_intensity > 255) : (255));
+        colorArr[1] = ((m.diffuse_color[1] * diffuse_light_intensity > 255) ? (m.diffuse_color[1] * diffuse_light_intensity > 255) : (255));
+        colorArr[2] = ((m.diffuse_color[2] * diffuse_light_intensity > 255) ? (m.diffuse_color[2] * diffuse_light_intensity > 255) : (255));
     }
 
     return 0;
@@ -185,12 +187,11 @@ int render(const Sphere s[], const Light l[], int l_length) {
     const int width = 1024;
     const int height = 768;
 
-    FILE *fp = fopen("fourth.ppm", "wb"); // Write in binary mode
+    FILE *fp = fopen("fifth.ppm", "wb"); // Write in binary mode
     (void) fprintf(fp, "P6\n%d %d\n255\n", width, height);
 
     float fov = 3.1415926535/2.; // Field of View
 
-    #pragma omp parallel for
     for (size_t j = 0; j < height; j++) {
         for (size_t i = 0; i < width; i++) {
 
@@ -211,9 +212,9 @@ int render(const Sphere s[], const Light l[], int l_length) {
 }
 
 int main(void) {
-    Material red = {255,0,0};
-    Material pink = {150,10,150};
-    Material gold = {255, 195, 0};
+    Material red = {{255,0,0}};
+    Material pink = {{150,10,150}};
+    Material gold = {{255, 195, 0}};
 
     //Populate with spheres
     Sphere s[3];
