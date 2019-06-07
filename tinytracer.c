@@ -139,7 +139,10 @@ bool scene_intersect(const float origin[], const float dir[], const Sphere s[], 
             arrSub(hit, s[i].center, hitMinusCenter, 3);
             normalize(hitMinusCenter, 3);
 
-            N = hitMinusCenter;
+            N[0] = hitMinusCenter[0];
+            N[1] = hitMinusCenter[1];
+            N[2] = hitMinusCenter[2];
+
             * ptr_m = s[i].material;
         }
     }
@@ -153,29 +156,23 @@ int cast_ray(const float origin[], const float dir[], const Sphere s[], const Li
 
     if (!scene_intersect(origin, dir, s, 3, point, N, ptr_m)) {
         //background
-        colorArr[0] = 250; //red
-        colorArr[1] = 250; //green
+        colorArr[0] = 5; //red
+        colorArr[1] = 100; //green
         colorArr[2] = 250; //blue
     } else {
         float diffuse_light_intensity = 0;
         float light_dir[3];
-
-        float new_l_pos[3];
         
         for (size_t i = 0; i < l_size; i++) {
-            arrSub(l[i].position, point, new_l_pos, 3);
-            normalize(new_l_pos, 3);
-            light_dir[i] = new_l_pos[i];
-            diffuse_light_intensity += l[i].intensity * (0.f >= dotProduct(light_dir, N, 3) ? 0.f : dotProduct(light_dir, N, 3));
+            arrSub(l[i].position, point, light_dir, 3);
+            normalize(light_dir, 3);
+            diffuse_light_intensity += l[i].intensity * ((0.f >= dotProduct(light_dir, N, 3) ? (0.f) : (dotProduct(light_dir, N, 3))));
         }
         //light up pixel
-        //printf("dotProduct(light_dir, N): %f\n", dotProduct(light_dir, N, 3));
-        colorArr[0] = m.diffuse_color[0]; //* diffuse_light_intensity;
-        colorArr[1] = m.diffuse_color[1]; //* diffuse_light_intensity;
-        colorArr[2] = m.diffuse_color[2]; //* diffuse_light_intensity; 
+        colorArr[0] = m.diffuse_color[0] * diffuse_light_intensity;
+        colorArr[1] = m.diffuse_color[1] * diffuse_light_intensity;
+        colorArr[2] = m.diffuse_color[2] * diffuse_light_intensity; 
     }
-
-    
 
     return 0;
 }
@@ -187,7 +184,7 @@ int render(const Sphere s[], const Light l[], int l_length) {
     const int width = 1024;
     const int height = 768;
 
-    FILE *fp = fopen("spheres.ppm", "wb"); // Write in binary mode
+    FILE *fp = fopen("third.ppm", "wb"); // Write in binary mode
     (void) fprintf(fp, "P6\n%d %d\n255\n", width, height);
 
     float fov = 3.1415926535/2.; // Field of View
@@ -229,7 +226,7 @@ int main(void) {
     //Add light source
     Light l[1];
     
-    Light test_light = {{-20,20,20}, 1.5};
+    Light test_light = {{-20,20,20}, 1.0};
 
     l[0] = test_light;
 
