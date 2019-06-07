@@ -5,6 +5,11 @@
 #include <limits.h>
 
 typedef struct {
+    float position[3];
+    float intensity;
+} Light;
+
+typedef struct {
     float diffuse_color[3];
 
 }  Material;
@@ -141,7 +146,7 @@ bool scene_intersect(const float origin[], const float dir[], const Sphere s[], 
     return sphere_dist<1000;
 }
 
-int cast_ray(const float origin[], const float dir[], const Sphere s[], unsigned char colorArr[]) {
+int cast_ray(const float origin[], const float dir[], const Sphere s[], const Light l[], int l_size, unsigned char colorArr[]) {
     float point[3], N[3];
     Material m;
     Material * ptr_m = &m;
@@ -152,12 +157,22 @@ int cast_ray(const float origin[], const float dir[], const Sphere s[], unsigned
         colorArr[1] = 250; //green
         colorArr[2] = 250; //blue
     } else {
-        //light up pixel
-        colorArr[0] = m.diffuse_color[0];
-        colorArr[1] = m.diffuse_color[1];
-        colorArr[2] = m.diffuse_color[2]; 
+        float diffuse_light_intensity = 0;
+        float light_dir[3];
 
-        printf("Colors: %i, %i, %i\n", colorArr[0], colorArr[1], colorArr[2]);
+        float new_l_pos[3];
+        
+        for (size_t i = 0; i < l_size; i++) {
+            arrSub(l[i].position, point, new_l_pos, 3);
+            normalize(new_l_pos, 3);
+            light_dir[i] = new_l_pos[i];
+            diffuse_light_intensity += l[i].intensity * (0.f >= dotProduct(light_dir, N, 3) ? 0.f : dotProduct(light_dir, N, 3));
+        }
+        //light up pixel
+        //printf("dotProduct(light_dir, N): %f\n", dotProduct(light_dir, N, 3));
+        colorArr[0] = m.diffuse_color[0]; //* diffuse_light_intensity;
+        colorArr[1] = m.diffuse_color[1]; //* diffuse_light_intensity;
+        colorArr[2] = m.diffuse_color[2]; //* diffuse_light_intensity; 
     }
 
     
@@ -165,7 +180,7 @@ int cast_ray(const float origin[], const float dir[], const Sphere s[], unsigned
     return 0;
 }
 
-int render(const Sphere s[]) {
+int render(const Sphere s[], const Light l[], int l_length) {
     /*
     Creates image in a new color each step.
     */
@@ -188,7 +203,7 @@ int render(const Sphere s[]) {
 
             unsigned char color[3];
             const float origin[] = {0,0,0};
-            cast_ray(origin, dir, s, color);
+            cast_ray(origin, dir, s, l, l_length, color);
             (void) fwrite(color, 1, 3, fp);
         }
     }
@@ -211,7 +226,14 @@ int main(void) {
     s[1] = bigS;
     s[2] = anotherS;
 
-    render(s);
+    //Add light source
+    Light l[1];
+    
+    Light test_light = {{-20,20,20}, 1.5};
+
+    l[0] = test_light;
+
+    render(s,l, 1);
     printf("Run success!\n");
     return 0;
 }
