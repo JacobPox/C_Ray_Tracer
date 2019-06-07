@@ -6,6 +6,7 @@
 
 typedef struct {
     float diffuse_color[3];
+
 }  Material;
 
 typedef struct {
@@ -117,7 +118,7 @@ bool ray_intersect(const float origin[], const float dir[], float t0, Sphere s) 
     return true;
 }
 
-bool scene_intersect(const float origin[], const float dir[], const Sphere s[], int len, float hit[], float N[], Material material) {
+bool scene_intersect(const float origin[], const float dir[], const Sphere s[], int len, float hit[], float N[], Material * ptr_m) {
     float sphere_dist = INT_MAX;
 
     for (size_t i=0; i < len; i++) {
@@ -134,7 +135,7 @@ bool scene_intersect(const float origin[], const float dir[], const Sphere s[], 
             normalize(hitMinusCenter, 3);
 
             N = hitMinusCenter;
-            material = s[i].material;
+            * ptr_m = s[i].material;
         }
     }
     return sphere_dist<1000;
@@ -142,19 +143,24 @@ bool scene_intersect(const float origin[], const float dir[], const Sphere s[], 
 
 int cast_ray(const float origin[], const float dir[], const Sphere s[], unsigned char colorArr[]) {
     float point[3], N[3];
-    Material materialS;
+    Material m;
+    Material * ptr_m = &m;
 
-    if (!scene_intersect(origin, dir, s, 3, point, N, materialS)) {
+    if (!scene_intersect(origin, dir, s, 3, point, N, ptr_m)) {
         //background
         colorArr[0] = 250; //red
         colorArr[1] = 250; //green
         colorArr[2] = 250; //blue
     } else {
         //light up pixel
-        colorArr[0] = s[0].material.diffuse_color[0];
-        colorArr[1] = s[1].material.diffuse_color[1];
-        colorArr[2] = s[2].material.diffuse_color[2]; 
+        colorArr[0] = m.diffuse_color[0];
+        colorArr[1] = m.diffuse_color[1];
+        colorArr[2] = m.diffuse_color[2]; 
+
+        printf("Colors: %i, %i, %i\n", colorArr[0], colorArr[1], colorArr[2]);
     }
+
+    
 
     return 0;
 }
@@ -180,7 +186,7 @@ int render(const Sphere s[]) {
             float dir[] = {x,y,-1};
             normalize(dir, 3);
 
-            static unsigned char color[3];
+            unsigned char color[3];
             const float origin[] = {0,0,0};
             cast_ray(origin, dir, s, color);
             (void) fwrite(color, 1, 3, fp);
