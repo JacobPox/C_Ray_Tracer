@@ -11,6 +11,8 @@ typedef struct {
 
 typedef struct {
     float diffuse_color[3];
+    float albedo[2];
+    float specular_exponent;
 
 }  Material;
 
@@ -20,6 +22,16 @@ typedef struct {
     Material material;
 
 } Sphere;
+
+int reflect(const float I[], const float N[], float updatedArr[], int length) {
+    float NI = dotProduct(N, I, length);
+    float tempArr[length];
+    
+    arrSub(I, arrScalarMult(N, NI * 2.f, tempArr, length), updatedArr, length);
+
+    return 0;
+    
+}
 
 int arrSub(const float arr1[], const float arr2[], float subArr[], int length) {
     /*
@@ -161,20 +173,27 @@ int cast_ray(const float origin[], const float dir[], const Sphere s[], const Li
         colorArr[1] = 100; //green
         colorArr[2] = 250; //blue
     } else {
-        float diffuse_light_intensity = 0;
+        float diffuse_light_intensity = 0, specular_light_intensity = 0;
         float light_dir[3];
+        float tempArr[3];
+        const float specArr[3];
         
         for (size_t i = 0; i < l_size; i++) {
             arrSub(l[i].position, point, light_dir, 3);
             normalize(light_dir, 3);
             diffuse_light_intensity += l[i].intensity * ((0.f >= dotProduct(light_dir, N, 3) ? (0.f) : (dotProduct(light_dir, N, 3))));
+            arrScalarMult(light_dir, -1, tempArr, 3);
+            reflect(tempArr, N, tempArr, 3);
+            float specHelper = dotProduct(tempArr, dir, 3);
+            specular_light_intensity += powf((0.f > -specHelper ? 0.f : -specHelper), m.specular_exponent) * l[i].intensity;
         }
         /*
         light up pixels and prevent overflow
         */
-        colorArr[0] = ((m.diffuse_color[0] * diffuse_light_intensity > 255) ? (255) : (m.diffuse_color[0] * diffuse_light_intensity));
-        colorArr[1] = ((m.diffuse_color[1] * diffuse_light_intensity > 255) ? (255) : (m.diffuse_color[1] * diffuse_light_intensity));
-        colorArr[2] = ((m.diffuse_color[2] * diffuse_light_intensity > 255) ? (255) : (m.diffuse_color[2] * diffuse_light_intensity));
+       float k = diffuse_light_intensity * m.albedo[0] + specular_light_intensity * m.albedo[1];
+        colorArr[0] = ((m.diffuse_color[0] * k > 255) ? (255) : (m.diffuse_color[0] * k));
+        colorArr[1] = ((m.diffuse_color[1] * k > 255) ? (255) : (m.diffuse_color[1] * k));
+        colorArr[2] = ((m.diffuse_color[2] * k > 255) ? (255) : (m.diffuse_color[2] * k));
     }
 
     return 0;
