@@ -172,9 +172,9 @@ int cast_ray(const float origin[], const float dir[], const Sphere s[], const Li
         /*
         light up pixels and prevent overflow
         */
-        colorArr[0] = ((m.diffuse_color[0] * diffuse_light_intensity > 255) ? (m.diffuse_color[0] * diffuse_light_intensity > 255) : (255));
-        colorArr[1] = ((m.diffuse_color[1] * diffuse_light_intensity > 255) ? (m.diffuse_color[1] * diffuse_light_intensity > 255) : (255));
-        colorArr[2] = ((m.diffuse_color[2] * diffuse_light_intensity > 255) ? (m.diffuse_color[2] * diffuse_light_intensity > 255) : (255));
+        colorArr[0] = ((m.diffuse_color[0] * diffuse_light_intensity > 255) ? (255) : (m.diffuse_color[0] * diffuse_light_intensity));
+        colorArr[1] = ((m.diffuse_color[1] * diffuse_light_intensity > 255) ? (255) : (m.diffuse_color[1] * diffuse_light_intensity));
+        colorArr[2] = ((m.diffuse_color[2] * diffuse_light_intensity > 255) ? (255) : (m.diffuse_color[2] * diffuse_light_intensity));
     }
 
     return 0;
@@ -229,7 +229,7 @@ int main(void) {
     //Add light source
     Light l[1];
     
-    Light test_light = {{-100,20,20}, 1.5};
+    Light test_light = {{-20,20,20}, 1.0};
 
     l[0] = test_light;
 
