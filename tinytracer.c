@@ -3,6 +3,7 @@
 #include <stdbool.h>
 #include <math.h>
 #include <limits.h>
+#include "tinysupport.h"
 
 typedef struct {
     float position[3];
@@ -22,84 +23,6 @@ typedef struct {
     Material material;
 
 } Sphere;
-
-int reflect(const float I[], const float N[], float updatedArr[], int length) {
-    float NI = dotProduct(N, I, length);
-    float tempArr[length];
-    
-    arrSub(I, arrScalarMult(N, NI * 2.f, tempArr, length), updatedArr, length);
-
-    return 0;
-    
-}
-
-int arrSub(const float arr1[], const float arr2[], float subArr[], int length) {
-    /*
-    Requires 3 equally sized arrays (denoted as length),
-    arr1 - arr2 will result in the third array subArr
-    */
-    for (int i = 0; i < length; i++) {
-        subArr[i] = arr1[i] - arr2[i];
-    }
-    return 0;
-}
-
-int arrAdd(const float arr1[], const float arr2[], float addArr[], int length) {
-    /*
-    Requires 3 equally sized arrays (denoted as length),
-    arr1 + arr2 will result in the third array subArr
-    */
-    for (int i = 0; i < length; i++) {
-        addArr[i] = arr1[i] + arr2[i];
-    }
-    return 0;
-}
-
-int arrScalarMult(const float arr1[], float scalar, float newArr[], int length) {
-    /*
-    Requires 3 equally sized arrays (denoted as length),
-    arr1 - arr2 will result in the third array subArr
-    */
-    for (int i = 0; i < length; i++) {
-        newArr[i] = arr1[i] * scalar;
-    }
-    return 0;
-}
-
-float dotProduct(const float arr1[], const float arr2[], int length) {
-    /*
-    Returns the dot product of two equal sized arrays 
-    (treated as vectors)
-
-    a (dot) b = a1b1 + a2b2 + ... anbn
-    */
-    float result = 0;
-
-    for (int i = 0; i < length; i++) {
-        result += arr1[i] * arr2[i];
-    }
-
-    return result;
-}
-
-int normalize(float arr[], int len) {
-    //Normalize a vector (array)
-
-    float sumSqr = 0;
-    float norm;
-
-    for (int i = 0; i < len; i++) {
-        sumSqr += arr[i] * arr[i];
-    }
-
-    norm = sqrt(sumSqr);
-
-    for (int i = 0; i < len; i++) {
-        arr[i] = arr[i] / norm;
-    }
-
-    return 0;
-}
 
 bool ray_intersect(const float origin[], const float dir[], float * t0, Sphere s) {
     /*
@@ -176,7 +99,6 @@ int cast_ray(const float origin[], const float dir[], const Sphere s[], const Li
         float diffuse_light_intensity = 0, specular_light_intensity = 0;
         float light_dir[3];
         float tempArr[3];
-        const float specArr[3];
         
         for (size_t i = 0; i < l_size; i++) {
             arrSub(l[i].position, point, light_dir, 3);
@@ -231,9 +153,9 @@ int render(const Sphere s[], const Light l[], int l_length) {
 }
 
 int main(void) {
-    Material red = {{255,0,0}};
-    Material pink = {{150,10,150}};
-    Material gold = {{255, 195, 0}};
+    Material red = {{255,0,0}, {.6, .3}, 50.};
+    Material pink = {{150,10,150}, {.9, .5}, 50.};
+    Material gold = {{255, 195, 0}, {.2, .4}, 50.};
 
     //Populate with spheres
     Sphere s[3];
@@ -248,7 +170,7 @@ int main(void) {
     //Add light source
     Light l[1];
     
-    Light test_light = {{-20,20,20}, 1.0};
+    Light test_light = {{100,20,20}, 1.0};
 
     l[0] = test_light;
 
