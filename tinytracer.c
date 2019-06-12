@@ -128,7 +128,7 @@ int render(const Sphere s[], const Light l[], int l_length) {
     const int width = 1024;
     const int height = 768;
 
-    FILE *fp = fopen("fifth.ppm", "wb"); // Write in binary mode
+    FILE *fp = fopen("sixth.ppm", "wb"); // Write in binary mode
     (void) fprintf(fp, "P6\n%d %d\n255\n", width, height);
 
     float fov = 3.1415926535/2.; // Field of View
@@ -155,26 +155,29 @@ int render(const Sphere s[], const Light l[], int l_length) {
 int main(void) {
     Material red = {{255,0,0}, {.6, .3}, 50.};
     Material pink = {{150,10,150}, {.9, .5}, 50.};
-    Material gold = {{255, 195, 0}, {.2, .4}, 50.};
+    Material gold = {{255, 195, 0}, {.6, .4}, 50.};
 
     //Populate with spheres
     Sphere s[3];
-    Sphere originalS = {{-3,0,-16},2,gold};
-    Sphere bigS = {{-1.0, -1.5, -12}, 3, red};
-    Sphere anotherS = {{7,5,-18},2,pink};
+    Sphere smallGold = {{-6,0,-16},2,gold};
+    Sphere bigRed = {{-1.0, -1.5, -12}, 3, red};
+    Sphere farPink = {{7,5,-18},2, pink};
 
-    s[0] = originalS;
-    s[1] = bigS;
-    s[2] = anotherS;
+    s[0] = smallGold;
+    s[1] = bigRed;
+    s[2] = farPink;
 
     //Add light source
-    Light l[1];
+    Light l[2];
     
-    Light test_light = {{100,20,20}, 1.0};
+    Light left_light = {{-20,20,20}, 1.25};
 
-    l[0] = test_light;
+    Light top_light = {{0, 20, 0}, 1.0};
 
-    render(s,l, 1);
+    l[0] = left_light;
+    l[1] = top_light;
+
+    render(s,l, 2);
     printf("Run success!\n");
     return 0;
 }
